@@ -1,0 +1,271 @@
+<?php
+
+/**
+ * EMO E-Mail Obfuscation
+ *
+ * Email Obfuscator module for plaintext emails and email links.
+ * 
+ * ProcessWire 2.x 
+ * Copyright (C) 2010 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+
+class emoEmailObfuscator extends WireData implements Module, ConfigurableModule {
+	
+	private $recentLinks;
+  private $addressesjs;
+  private $addrCount;
+  private $tab;
+
+	/**
+	 * module info
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'EMO E-Mail Obfuscation', 
+			'version' => 100, 
+			'summary' => 'Email Obfuscator module for plaintext emails and email links.',
+			'href' => 'https://github.com/BlowbackDesign/emo',
+			'singular' => true, 
+			'autoload' => true, 
+			);
+	}
+	
+	/**
+	 * default config variables
+	 */
+	public function __construct() {
+    $this->set('no_js_message', 'Enable JavaScript to view protected content.');
+    $this->set('emo_js_file', $this->config->urls->emoEmailObfuscator.'emo.min.js');
+    $this->set('emo_js_load', 2);
+    $this->set('jquery_load', 0);
+    $this->set('show_debug', false);
+    $this->set('exclude_tpls', false);
+  }
+
+	/**
+	 * initialize the module
+	 */
+	public function init() {
+		// add a hook after each page is rendered and modify the output
+		$this->addHookAfter('Page::render', $this, 'emailObfuscator');
+	}
+	
+	/**
+	 * matches email addresses
+	 */
+	private function email_regex() {
+		$atom = "[-!#$%'*+/=?^_`{|}~0-9A-Za-z]+";
+		$email_left = $atom.'(?:\\.'.$atom.')*';
+		$email_right = $atom.'(?:\\.'.$atom.')+';
+		$email = $email_left.'@'.$email_right;
+		return $email;
+	}
+	
+	/**
+	 * custom base 64 encoding
+	 */
+	private function encode_base64($data) {
+		$out = '';
+		for ($i = 0; $i < strlen($data); ) {
+			$c1 = ord($data {$i++} );
+			$c2 = $c3 = NULL;
+			if ($i < strlen($data))
+				$c2 = ord($data {$i++} );
+			if ($i < strlen($data))
+				$c3 = ord($data {$i++} );
+			$e1 = $c1 >> 2;
+			$e2 = (($c1 & 3) << 4) + ($c2 >> 4);
+			$e3 = (($c2 & 15) << 2) + ($c3 >> 6);
+			$e4 = $c3 & 63;
+			if (is_nan($c2))
+				$e3 = $e4 = 64;
+			else if (is_nan($c3))
+				$e4 = 64;
+			$out .= $this->tab {$e1} .$this->tab {$e2} .$this->tab {$e3} .$this->tab {$e4} ;
+		}
+		return $out;
+	}
+	
+	/**
+	 * encrypt the match
+	 */
+	private function encodeLink($matches) {
+		
+		// counter and key array
+		if (!$this->addrCount) {
+			mt_srand((double) microtime() * 1000000); // random generator seed
+			$this->tab = str_shuffle($this->tab); // make base 64 key
+			$this->addrCount = 0;
+			$this->addressesjs .= ' emo_emails['.$this->addrCount++.'] = "'.$this->tab.'";'."\n";
+		}
+		
+		// link without a linktext: insert email address as text part
+		if (sizeof($matches) < 3) { $matches[2] = $matches[1]; }
+		
+		// urlencode a possible subject
+		$matches[1] = preg_replace('!(.*\?(subject|body)=)([^\?]*)!ie', "'$1'.rawurlencode('$3')", $matches[1]);
+		
+		// create html of the true link
+		$trueLink = '<a class="emo_email" href="mailto:'.$matches[1].'">'.$matches[2].'</a>';
+
+		// did we use the same link before?
+		$key = array_search($trueLink, $this->recentLinks);
+		$crypted = ($key === false) ? '"'.$this->encode_base64($trueLink).'"' : 'emo_emails['.($key + 1).']';
+		
+		// add encrypted address to array
+		$this->addressesjs .= ' emo_emails['.$this->addrCount.'] = '.$crypted.';'."\n";
+		
+		// create html of the fake link
+		$replaceLink = '<span id="emo_email_'.$this->addrCount.'" class="emo_email">'.$this->no_js_message.'</span>';
+		
+		// add link to recent links array
+		array_push($this->recentLinks, $trueLink);
+		
+		// debugging
+		if ($this->show_debug) {
+			$this->show_debug .= ' '.$this->addrCount.': '.$matches[0]." | ".$matches[1]." | ".$matches[2]."\n    ".$crypted."\n\n";
+		}
+
+		// increase address counter
+		$this->addrCount++;
+		
+		return $replaceLink;
+	}
+
+	/**
+	 * obfuscates emails
+	 */
+	public function emailObfuscator($event) {
+
+		$page = $event->object;
+		$output = $event->return;
+
+		// don't add this to the admin pages
+		if($page->template == 'admin') return;
+		
+		// address counter and base 64 characters
+		$this->tab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+.';
+
+		// array for storing recent links
+		$this->recentLinks = array();
+
+		// script block header
+		$this->addressesjs = '<!-- emo //-->'."\n".'<script type="text/javascript">'."\n".' var emo_emails = new Array();'."\n";
+		
+		// debugging
+		if ($this->show_debug) {
+			$this->show_debug = "\n".'<!-- emo debugging'."\n\n";
+			$mtime = microtime();
+			$mtime = explode(' ', $mtime);
+			$mtime = $mtime[1] + $mtime[0];
+			$starttime = $mtime;
+		}
+
+		// exclude form tags
+		$splitEx = "#((?:<form).*(?:</form>))#isUu";
+		$parts = preg_split($splitEx, $output, NULL, PREG_SPLIT_DELIM_CAPTURE);
+		
+		// replace mailto links and email addresses
+		$output = '';
+		foreach ($parts as $part) {
+			if (substr($part, 0, 5) != '<form') {
+				$part = preg_replace_callback('#<a[^>]*mailto:([^\'"]+)[\'"][^>]*>(.*)</a>#iUu', array($this, 'encodeLink'), $part);
+				$part = preg_replace_callback('<('.$this->email_regex().')>', array($this, 'encodeLink'), $part);
+			}
+			$output .= $part;
+		}
+		
+		// finish encrypted addresses block
+		if ($this->jquery_load == 1) {
+			$this->addressesjs .= " jQuery(document).ready(function(){ emo_replace(); });\n</script>\n";
+		} else {
+			$this->addressesjs .= " addLoadEvent(emo_replace());\n</script>\n";
+		}
+		
+		// if the addresses block hasn't already been added to the end of the html body, do it now
+		if ($this->addrCount && strpos($event->return, $this->addressesjs) === false) {
+			$output = preg_replace('~(</body[^>]*>)~i', $this->addressesjs."\n".'\1', $output);
+		}
+		
+		// load emo.js
+		if ($this->emo_js_load)
+		switch ($this->emo_js_load) {
+			case 1:
+				$this->config->scripts->add($this->emo_js_file);
+				break;
+			case 2:
+				$output = preg_replace('~(</head[^>]*>)~i', '<script src="'.$this->emo_js_file.'" type="text/javascript"></script>'."\n".'\1', $output);
+				break;
+		}
+
+		// write debugging info
+		if ($this->show_debug) {
+			$mtime = microtime();
+			$mtime = explode(' ', $mtime);
+			$mtime = $mtime[1] + $mtime[0];
+			$endtime = $mtime;
+			$totaltime = ($endtime - $starttime);
+			$this->show_debug .= ' Email crypting took '.$totaltime.' seconds'."\n\n";
+			$this->show_debug .= ' '.implode("\n ", $this->recentLinks)."\n\n";
+			$this->show_debug .= '-->'."\n";
+			$output .= $this->show_debug;
+		}
+		
+		// return output
+		$event->return = $output;
+	}
+	
+	public function getConfig() {
+		$inputfields = new InputfieldWrapper();
+
+		$f = $this->modules->get('InputfieldText');
+		$f->label = 'Replace text string';
+		$f->attr('name', 'no_js_message');
+		$f->attr('value', $this->no_js_message);
+		$inputfields->add($f);
+		
+		// $f = $this->modules->get('InputfieldPage');
+		// $f->label = 'Exclude in templates';
+		// $f->attr('name', 'exclude_tpls');
+		// $f->parent_id = 1;
+		// $f->inputfield = 'InputfieldSelect';
+		// $f->derefAsPage = FieldtypePage::derefAsPageArray;
+		// $inputfields->add($f);
+
+		$f = $this->modules->get('InputfieldRadios');
+		$f->label = 'Script file loading method';
+		$f->attr('name', 'emo_js_load');
+		$f->attr('value', $this->emo_js_load); 
+		$f->addOption(0, 'Load manually');
+		$f->addOption(1, 'Load to $config->scripts array');
+		$f->addOption(2, 'Prepend file to head section');
+		$inputfields->add($f);
+
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->label = 'Enable jQuery init';
+		$f->attr('name', 'jquery_load');
+		$f->attr('value', 1);
+		if($this->jquery_load) $f->attr('checked', 'checked');
+		$inputfields->add($f);
+		
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->label = 'Enable debugging info';
+		$f->attr('name', 'show_debug');
+		$f->attr('value', 1);
+		if($this->show_debug) $f->attr('checked', 'checked');
+		$inputfields->add($f);
+		
+		return $inputfields;
+  }
+	
+	public static function getModuleConfigInputfields(array $data) {
+    $module = wire('modules')->get('emoEmailObfuscator'); 
+    return $module->getConfig();
+  }
+
+}
