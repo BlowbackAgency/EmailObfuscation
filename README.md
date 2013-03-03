@@ -20,4 +20,5 @@ Both emo touched span and anchor elements have 'emo_email' class name that you c
 This is ProcessWire module fork from MODX Evolution plugin emo E-Mail Obfuscation.
 http://modx.com/extras/package/emoemailobfuscation
 
-**GNU Public License (GPL)** http://www.gnu.org/copyleft/gpl.html
+## License
+GNU Public License (GPL) http://www.gnu.org/copyleft/gpl.html

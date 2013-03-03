@@ -14,11 +14,11 @@
  */
 
 class EmailObfuscation extends WireData implements Module, ConfigurableModule {
-	
+
 	private $recentLinks;
-  private $addressesjs;
-  private $addrCount;
-  private $tab;
+	private $addressesjs;
+	private $addrCount;
+	private $tab;
 
 	/**
 	 * module info
@@ -31,22 +31,22 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			'href' => 'https://github.com/BlowbackDesign/emo',
 			'singular' => true, 
 			'autoload' => true, 
-			);
+		);
 	}
 	
 	/**
 	 * default config variables
 	 */
 	public function __construct() {
-    $this->set('no_js_message', 'Enable JavaScript to view protected content.');
-    $this->set('emo_js_file', $this->config->urls->EmailObfuscation.'emo.min.js');
-    $this->set('emo_js_load', 2);
-    $this->set('jquery_load', 0);
-    $this->set('show_debug', false);
-    $this->set('exclude_tpls', false);
-    $this->set('exclude_pages', false);
-  }
-
+		$this->set('no_js_message', 'Enable JavaScript to view protected content.');
+		$this->set('emo_js_file', $this->config->urls->EmailObfuscation.'emo.min.js');
+		$this->set('emo_js_load', 2);
+		$this->set('jquery_load', 0);
+		$this->set('show_debug', false);
+		$this->set('exclude_tpls', false);
+		$this->set('exclude_pages', false);
+	}
+	
 	/**
 	 * initialize the module
 	 */
