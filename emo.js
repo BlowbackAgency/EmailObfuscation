@@ -31,7 +31,7 @@ function addLoadEvent(func) {
 
 // Decrypt all email addresses
 function emo_replace() {
-  for (var i = 1; i < emo_emails.length; i++) {
+  for (var i = 1; i < emo_addr.length; i++) {
     var id = 'emo_email_' + i;
     var elem = document.getElementById(id);
     if (elem) {
@@ -51,8 +51,8 @@ function decrypt_string(n) {
   if(decryption_cache[cache_index])		// If this string has already been decrypted, just
     return decryption_cache[cache_index];	// return the cached version.
 
-  if(emo_emails[n])				// Is crypted_string an index into the addresses array?
-    var crypted_string = emo_emails[n];
+  if(emo_addr[n])				// Is crypted_string an index into the addresses array?
+    var crypted_string = emo_addr[n];
 
   if(!crypted_string.length)			// Make sure the string is actually a string
     return "Error, not a valid index.";
@@ -67,7 +67,7 @@ function decrypt_string(n) {
 
 // Custom base 64 decoding
 function decode_base64(data) {
-  var tab = emo_emails[0];
+  var tab = emo_addr[0];
   var out = "", c1, c2, c3, e1, e2, e3, e4;
   for (var i = 0; i < data.length; ) {
     e1 = tab.indexOf(data.charAt(i++));

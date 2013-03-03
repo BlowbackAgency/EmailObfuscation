@@ -1,20 +1,19 @@
 <?php
-
 /**
- * EMO E-Mail Obfuscation
+ * Email Obfuscation (EMO)
  *
- * Email Obfuscator module for plaintext emails and email links.
- * 
- * ProcessWire 2.x 
- * Copyright (C) 2010 by Ryan Cramer 
- * Licensed under GNU/GPL v2, see LICENSE.TXT
- * 
- * http://www.processwire.com
- * http://www.ryancramer.com
+ * Email Obfuscation module for plaintext emails and email links with 64 base crypting.
+ *
+ * https://github.com/BlowbackDesign/emo
+ * Copyright (C) 2013 Blowback http://www.blowback.fi
+ * GNU/GPL license http://www.gnu.org/copyleft/gpl.html
+ *
+ * This is ProcessWire module fork from MODX Evolution plugin emo E-Mail Obfuscation.
+ * http://modx.com/extras/package/emoemailobfuscation
  *
  */
 
-class emoEmailObfuscator extends WireData implements Module, ConfigurableModule {
+class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	
 	private $recentLinks;
   private $addressesjs;
@@ -26,9 +25,9 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 	 */
 	public static function getModuleInfo() {
 		return array(
-			'title' => 'EMO E-Mail Obfuscation', 
-			'version' => 100, 
-			'summary' => 'Email Obfuscator module for plaintext emails and email links.',
+			'title' => 'Email Obfuscation (EMO)', 
+			'version' => 101, 
+			'summary' => 'Email Obfuscation module for plaintext emails and email links with 64 base crypting.',
 			'href' => 'https://github.com/BlowbackDesign/emo',
 			'singular' => true, 
 			'autoload' => true, 
@@ -40,19 +39,24 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 	 */
 	public function __construct() {
     $this->set('no_js_message', 'Enable JavaScript to view protected content.');
-    $this->set('emo_js_file', $this->config->urls->emoEmailObfuscator.'emo.min.js');
+    $this->set('emo_js_file', $this->config->urls->EmailObfuscation.'emo.min.js');
     $this->set('emo_js_load', 2);
     $this->set('jquery_load', 0);
     $this->set('show_debug', false);
     $this->set('exclude_tpls', false);
+    $this->set('exclude_pages', false);
   }
 
 	/**
 	 * initialize the module
 	 */
 	public function init() {
+		// add emo.js to scripts array if set
+		if ($this->emo_js_load == 1) {
+			$this->config->scripts->add($this->emo_js_file);
+		}
 		// add a hook after each page is rendered and modify the output
-		$this->addHookAfter('Page::render', $this, 'emailObfuscator');
+		$this->addHookAfter('Page::render', $this, 'obfuscateEmails');
 	}
 	
 	/**
@@ -74,18 +78,14 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		for ($i = 0; $i < strlen($data); ) {
 			$c1 = ord($data {$i++} );
 			$c2 = $c3 = NULL;
-			if ($i < strlen($data))
-				$c2 = ord($data {$i++} );
-			if ($i < strlen($data))
-				$c3 = ord($data {$i++} );
+			if ($i < strlen($data)) $c2 = ord($data {$i++} );
+			if ($i < strlen($data)) $c3 = ord($data {$i++} );
 			$e1 = $c1 >> 2;
 			$e2 = (($c1 & 3) << 4) + ($c2 >> 4);
 			$e3 = (($c2 & 15) << 2) + ($c3 >> 6);
 			$e4 = $c3 & 63;
-			if (is_nan($c2))
-				$e3 = $e4 = 64;
-			else if (is_nan($c3))
-				$e4 = 64;
+			if (is_nan($c2)) $e3 = $e4 = 64;
+			else if (is_nan($c3)) $e4 = 64;
 			$out .= $this->tab {$e1} .$this->tab {$e2} .$this->tab {$e3} .$this->tab {$e4} ;
 		}
 		return $out;
@@ -101,7 +101,7 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 			mt_srand((double) microtime() * 1000000); // random generator seed
 			$this->tab = str_shuffle($this->tab); // make base 64 key
 			$this->addrCount = 0;
-			$this->addressesjs .= ' emo_emails['.$this->addrCount++.'] = "'.$this->tab.'";'."\n";
+			$this->addressesjs .= ' emo_addr['.$this->addrCount++.'] = "'.$this->tab.'";'."\n";
 		}
 		
 		// link without a linktext: insert email address as text part
@@ -112,17 +112,18 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		
 		// create html of the true link
 		$trueLink = '<a class="emo_email" href="mailto:'.$matches[1].'">'.$matches[2].'</a>';
+		
+		// create html of the fake link
+		$replaceText = preg_match('<('.$this->email_regex().')>', $matches[2]) ? $this->no_js_message : $matches[2];
+		$replaceLink = '<span id="emo_email_'.$this->addrCount.'" class="emo_email">'.$replaceText.'</span>';
 
 		// did we use the same link before?
 		$key = array_search($trueLink, $this->recentLinks);
-		$crypted = ($key === false) ? '"'.$this->encode_base64($trueLink).'"' : 'emo_emails['.($key + 1).']';
+		$crypted = ($key === false) ? '"'.$this->encode_base64($trueLink).'"' : 'emo_addr['.($key + 1).']';
 		
 		// add encrypted address to array
-		$this->addressesjs .= ' emo_emails['.$this->addrCount.'] = '.$crypted.';'."\n";
-		
-		// create html of the fake link
-		$replaceLink = '<span id="emo_email_'.$this->addrCount.'" class="emo_email">'.$this->no_js_message.'</span>';
-		
+		$this->addressesjs .= ' emo_addr['.$this->addrCount.'] = '.$crypted.';'."\n";
+				
 		// add link to recent links array
 		array_push($this->recentLinks, $trueLink);
 		
@@ -130,7 +131,7 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		if ($this->show_debug) {
 			$this->show_debug .= ' '.$this->addrCount.': '.$matches[0]." | ".$matches[1]." | ".$matches[2]."\n    ".$crypted."\n\n";
 		}
-
+		
 		// increase address counter
 		$this->addrCount++;
 		
@@ -140,26 +141,30 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 	/**
 	 * obfuscates emails
 	 */
-	public function emailObfuscator($event) {
+	public function obfuscateEmails($event) {
 
 		$page = $event->object;
 		$output = $event->return;
+		$this->recentLinks = array();
 
 		// don't add this to the admin pages
-		if($page->template == 'admin') return;
+		if ($page->template->flags & Template::flagSystem) return;
+		
+		// don't add this if template is excluded
+		if (is_array($this->exclude_tpls) && in_array($page->template->id, $this->exclude_tpls)) return;
+		
+		// don't add this if page is excluded
+		if (is_array($this->exclude_pages) && in_array($page->id, $this->exclude_pages)) return;
 		
 		// address counter and base 64 characters
 		$this->tab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+.';
 
-		// array for storing recent links
-		$this->recentLinks = array();
-
 		// script block header
-		$this->addressesjs = '<!-- emo //-->'."\n".'<script type="text/javascript">'."\n".' var emo_emails = new Array();'."\n";
+		$this->addressesjs = "<!-- emo -->\n".'<script type="text/javascript">'."\n var emo_addr = new Array();\n";
 		
 		// debugging
 		if ($this->show_debug) {
-			$this->show_debug = "\n".'<!-- emo debugging'."\n\n";
+			$this->show_debug = "\n<!-- emo debugging\n\n";
 			$mtime = microtime();
 			$mtime = explode(' ', $mtime);
 			$mtime = $mtime[1] + $mtime[0];
@@ -187,20 +192,14 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 			$this->addressesjs .= " addLoadEvent(emo_replace());\n</script>\n";
 		}
 		
-		// if the addresses block hasn't already been added to the end of the html body, do it now
-		if ($this->addrCount && strpos($event->return, $this->addressesjs) === false) {
-			$output = preg_replace('~(</body[^>]*>)~i', $this->addressesjs."\n".'\1', $output);
+		// append emo addresses block to html body
+		if ($this->addrCount && strpos($output, $this->addressesjs) === false) {
+			$output = str_replace("</body>", $this->addressesjs."\n</body>", $output); 
 		}
 		
-		// load emo.js
-		if ($this->emo_js_load)
-		switch ($this->emo_js_load) {
-			case 1:
-				$this->config->scripts->add($this->emo_js_file);
-				break;
-			case 2:
-				$output = preg_replace('~(</head[^>]*>)~i', '<script src="'.$this->emo_js_file.'" type="text/javascript"></script>'."\n".'\1', $output);
-				break;
+		// append emo.js to html head if set
+		if ($this->emo_js_load == 2 && strpos($output, $this->emo_js_file) === false) {
+			$output = str_replace("</head>", '<script src="'.$this->emo_js_file.'" type="text/javascript"></script>'."\n</head>", $output); 
 		}
 
 		// write debugging info
@@ -210,9 +209,9 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 			$mtime = $mtime[1] + $mtime[0];
 			$endtime = $mtime;
 			$totaltime = ($endtime - $starttime);
-			$this->show_debug .= ' Email crypting took '.$totaltime.' seconds'."\n\n";
-			$this->show_debug .= ' '.implode("\n ", $this->recentLinks)."\n\n";
-			$this->show_debug .= '-->'."\n";
+			$this->show_debug .= " Email crypting took ".$totaltime." seconds\n\n";
+			$this->show_debug .= " ".implode("\n ", $this->recentLinks)."\n\n";
+			$this->show_debug .= "-->\n";
 			$output .= $this->show_debug;
 		}
 		
@@ -220,27 +219,56 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		$event->return = $output;
 	}
 	
+	/**
+	 * configure admin fields
+	 */
 	public function getConfig() {
 		$inputfields = new InputfieldWrapper();
-
+		
+		$f = $this->modules->get('InputfieldAsmSelect');
+		$f->label = 'Exclude in templates';
+		$f->attr('name', 'exclude_tpls');
+		$f->attr('value', $this->exclude_tpls);
+		foreach ($this->templates as $t) {
+			if (!($t->flags & Template::flagSystem)) {
+				$f->addOption($t->id, $t->name);
+			}
+		}
+		$f->collapsed = Inputfield::collapsedBlank;
+		$inputfields->add($f);
+		
+		$f = $this->modules->get('InputfieldAsmSelect');
+		$f->label = 'Exclude in pages';
+		$f->attr('name', 'exclude_pages');
+		$f->attr('value', $this->exclude_pages);
+		$home = $this->pages->get("/");
+		$pages = $home->children;
+		$pages->prepend($home);
+		foreach ($pages as $p) {
+			if (!in_array($p->template->id, $this->exclude_tpls)) {
+				$f->addOption($p->id, $p->name);
+			}
+		}
+		$f->collapsed = Inputfield::collapsedBlank;
+		$inputfields->add($f);
+		
+		// $f = $this->modules->get('InputfieldPageAutocomplete');
+		// $f->label = 'Exclude in pages';
+		// $f->attr('name', 'exclude_pages');
+		// $f->attr('value', $this->exclude_pages);
+		// $f->collapsed = Inputfield::collapsedBlank;
+		// $inputfields->add($f);
+		
 		$f = $this->modules->get('InputfieldText');
 		$f->label = 'Replace text string';
 		$f->attr('name', 'no_js_message');
 		$f->attr('value', $this->no_js_message);
 		$inputfields->add($f);
 		
-		// $f = $this->modules->get('InputfieldPage');
-		// $f->label = 'Exclude in templates';
-		// $f->attr('name', 'exclude_tpls');
-		// $f->parent_id = 1;
-		// $f->inputfield = 'InputfieldSelect';
-		// $f->derefAsPage = FieldtypePage::derefAsPageArray;
-		// $inputfields->add($f);
-
 		$f = $this->modules->get('InputfieldRadios');
 		$f->label = 'Script file loading method';
 		$f->attr('name', 'emo_js_load');
-		$f->attr('value', $this->emo_js_load); 
+		$f->attr('value', $this->emo_js_load);
 		$f->addOption(0, 'Load manually');
 		$f->addOption(1, 'Load to $config->scripts array');
 		$f->addOption(2, 'Prepend file to head section');
@@ -251,6 +279,7 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		$f->attr('name', 'jquery_load');
 		$f->attr('value', 1);
 		if($this->jquery_load) $f->attr('checked', 'checked');
+		$f->collapsed = $f->attr('checked') ? Inputfield::collapsedNo : Inputfield::collapsedYes; 
 		$inputfields->add($f);
 		
 		$f = $this->modules->get('InputfieldCheckbox');
@@ -258,13 +287,14 @@ class emoEmailObfuscator extends WireData implements Module, ConfigurableModule 
 		$f->attr('name', 'show_debug');
 		$f->attr('value', 1);
 		if($this->show_debug) $f->attr('checked', 'checked');
+		$f->collapsed = $f->attr('checked') ? Inputfield::collapsedNo : Inputfield::collapsedYes; 
 		$inputfields->add($f);
 		
 		return $inputfields;
   }
 	
 	public static function getModuleConfigInputfields(array $data) {
-    $module = wire('modules')->get('emoEmailObfuscator'); 
+    $module = wire('modules')->get('EmailObfuscation'); 
     return $module->getConfig();
   }
 
