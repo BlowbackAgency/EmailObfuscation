@@ -245,7 +245,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$pages = $home->children;
 		$pages->prepend($home);
 		foreach ($pages as $p) {
-			if (!in_array($p->template->id, $this->exclude_tpls)) {
+			if (is_array($this->exclude_tpls) && !in_array($p->template->id, $this->exclude_tpls)) {
 				$f->addOption($p->id, $p->name);
 			}
 		}
