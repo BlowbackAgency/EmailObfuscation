@@ -42,6 +42,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$this->set('emo_js_file', $this->config->urls->EmailObfuscation.'emo.min.js');
 		$this->set('emo_js_load', 2);
 		$this->set('jquery_load', 0);
+		$this->set('mailto_links', 1);
 		$this->set('show_debug', false);
 		$this->set('exclude_tpls', false);
 		$this->set('exclude_pages', false);
@@ -111,7 +112,11 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$matches[1] = preg_replace('!(.*\?(subject|body)=)([^\?]*)!ie', "'$1'.rawurlencode('$3')", $matches[1]);
 		
 		// create html of the true link
-		$trueLink = '<a class="emo_email" href="mailto:'.$matches[1].'">'.$matches[2].'</a>';
+		if ($matches[0] != $matches[1] || $this->mailto_links) {
+			$trueLink = '<a class="emo_email" href="mailto:'.$matches[1].'">'.$matches[2].'</a>';
+		} else {
+			$trueLink = $matches[1];
+		}
 		
 		// create html of the fake link
 		$replaceText = preg_match('<('.$this->email_regex().')>', $matches[2]) ? $this->no_js_message : $matches[2];
@@ -263,6 +268,14 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->label = 'Replace text string';
 		$f->attr('name', 'no_js_message');
 		$f->attr('value', $this->no_js_message);
+		$inputfields->add($f);
+		
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->label = 'Force email adresses to mailto links';
+		$f->attr('name', 'mailto_links');
+		$f->attr('value', 1);
+		if($this->mailto_links) $f->attr('checked', 'checked');
+		$f->collapsed = $f->attr('checked') ? Inputfield::collapsedNo : Inputfield::collapsedYes; 
 		$inputfields->add($f);
 		
 		$f = $this->modules->get('InputfieldRadios');
