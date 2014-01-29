@@ -264,7 +264,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$inputfields->add($f);
 		
 		$f = $this->modules->get('InputfieldCheckbox');
-		$f->label = 'Force email adresses to mailto links';
+		$f->label = 'Force email addresses to mailto links';
 		$f->attr('name', 'mailto_links');
 		$f->attr('value', 1);
 		if($this->mailto_links) $f->attr('checked', 'checked');
