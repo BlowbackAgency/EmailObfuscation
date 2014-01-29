@@ -242,27 +242,20 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->collapsed = Inputfield::collapsedBlank;
 		$inputfields->add($f);
 		
-		$f = $this->modules->get('InputfieldAsmSelect');
+		$f = $this->modules->get('InputfieldPageAutocomplete');
 		$f->label = 'Exclude in pages';
 		$f->attr('name', 'exclude_pages');
 		$f->attr('value', $this->exclude_pages);
-		$home = $this->pages->get("/");
-		$pages = $home->children;
-		$pages->prepend($home);
-		foreach ($pages as $p) {
-			if (is_array($this->exclude_tpls) && !in_array($p->template->id, $this->exclude_tpls)) {
-				$f->addOption($p->id, $p->name);
+		foreach ($this->templates as $t) {
+			if (!($t->flags & Template::flagSystem)) {
+				if (is_array($this->exclude_tpls) && !in_array($t->id, $this->exclude_tpls)) {
+					$selector .= "|{$t->name}";
+				}
 			}
 		}
+		$f->findPagesSelector = "template=" . ltrim($selector, '|');
 		$f->collapsed = Inputfield::collapsedBlank;
 		$inputfields->add($f);
-		
-		// $f = $this->modules->get('InputfieldPageAutocomplete');
-		// $f->label = 'Exclude in pages';
-		// $f->attr('name', 'exclude_pages');
-		// $f->attr('value', $this->exclude_pages);
-		// $f->collapsed = Inputfield::collapsedBlank;
-		// $inputfields->add($f);
 		
 		$f = $this->modules->get('InputfieldText');
 		$f->label = 'Replace text string';
