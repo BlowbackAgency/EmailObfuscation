@@ -165,7 +165,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$this->tab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+.';
 
 		// script block header
-		$this->addressesjs = "<!-- emo -->\n".'<script type="text/javascript">'."\n var emo_addr = new Array();\n";
+		$this->addressesjs = "<!-- emo -->\n".'<script>'."\n var emo_addr = new Array();\n";
 		
 		// debugging
 		if ($this->show_debug) {
