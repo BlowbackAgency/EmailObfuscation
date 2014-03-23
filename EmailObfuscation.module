@@ -246,6 +246,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->label = 'Exclude in pages';
 		$f->attr('name', 'exclude_pages');
 		$f->attr('value', $this->exclude_pages);
+		$selector = '';
 		foreach ($this->templates as $t) {
 			if (!($t->flags & Template::flagSystem)) {
 				if (is_array($this->exclude_tpls) && !in_array($t->id, $this->exclude_tpls)) {
