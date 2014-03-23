@@ -14,11 +14,13 @@
  */
 
 class EmailObfuscation extends WireData implements Module, ConfigurableModule {
-
-	private $recentLinks;
-	private $addressesjs;
-	private $addrCount;
-	private $tab;
+	
+	private $debugTime = 0;
+	private $debugData = '';
+	private $recentLinks = array();
+	private $addressesjs = '';
+	private $addrCount = 0;
+	private $tab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+.';	
 
 	/**
 	 * module info
@@ -134,7 +136,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		
 		// debugging
 		if ($this->show_debug) {
-			$this->show_debug .= ' '.$this->addrCount.': '.$matches[0]." | ".$matches[1]." | ".$matches[2]."\n    ".$crypted."\n\n";
+			$this->debugData .= ' '.$this->addrCount.': '.$matches[0]." | ".$matches[1]." | ".$matches[2]."\n    ".$crypted."\n\n";
 		}
 		
 		// increase address counter
@@ -150,7 +152,6 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 
 		$page = $event->object;
 		$output = $event->return;
-		$this->recentLinks = array();
 
 		// don't add this to the admin pages
 		if ($page->template->flags & Template::flagSystem) return;
@@ -161,21 +162,13 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		// don't add this if page is excluded
 		if (is_array($this->exclude_pages) && in_array($page->id, $this->exclude_pages)) return;
 		
-		// address counter and base 64 characters
-		$this->tab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+.';
-
-		// script block header
-		$this->addressesjs = "\n<!-- emo -->\n".'<script>'."\n var emo_addr = new Array();\n";
-		
-		// debugging
+		// debug start time
 		if ($this->show_debug) {
-			$this->show_debug = "\n<!-- emo debugging\n\n";
 			$mtime = microtime();
 			$mtime = explode(' ', $mtime);
-			$mtime = $mtime[1] + $mtime[0];
-			$starttime = $mtime;
+			$time_start = $mtime[1] + $mtime[0];
 		}
-
+		
 		// exclude form tags
 		$splitEx = "#((?:<form).*(?:</form>))#isUu";
 		$parts = preg_split($splitEx, $output, NULL, PREG_SPLIT_DELIM_CAPTURE);
@@ -190,34 +183,43 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			$output .= $part;
 		}
 		
-		// finish encrypted addresses block
-		if ($this->jquery_load == 1) {
-			$this->addressesjs .= " jQuery(document).ready(function(){ emo_replace(); });\n</script>\n";
-		} else {
-			$this->addressesjs .= " addLoadEvent(emo_replace());\n</script>\n";
-		}
-		
-		// append emo addresses block to html body
-		if ($this->addrCount && strpos($output, $this->addressesjs) === false) {
-			$output = str_replace("</body>", $this->addressesjs."\n</body>", $output); 
-		}
-		
-		// append emo.js to html head if set
-		if ($this->emo_js_load == 2 && strpos($output, $this->emo_js_file) === false) {
-			$output = str_replace("</head>", '<script src="'.$this->emo_js_file.'" type="text/javascript"></script>'."\n</head>", $output); 
-		}
-
-		// write debugging info
+		// debug end time
 		if ($this->show_debug) {
 			$mtime = microtime();
 			$mtime = explode(' ', $mtime);
-			$mtime = $mtime[1] + $mtime[0];
-			$endtime = $mtime;
-			$totaltime = ($endtime - $starttime);
-			$this->show_debug .= " Email crypting took ".$totaltime." seconds\n\n";
-			$this->show_debug .= " ".implode("\n ", $this->recentLinks)."\n\n";
-			$this->show_debug .= "-->\n";
-			$output .= $this->show_debug;
+			$time_end = $mtime[1] + $mtime[0];
+			$this->debugTime = $this->debugTime + ($time_end - $time_start);
+		}
+		
+		// append data to rendered html document
+		if (strpos($output, '</html>') !== false) {
+			
+			if ($this->show_debug) {
+				$output .= "\n<!-- emo debugging\n\n";
+				$output .= $this->debugData;
+				$output .= " Email crypting took {$this->debugTime} seconds\n\n";
+				$output .= " ". implode("\n ", $this->recentLinks). "\n\n";
+				$output .= "-->\n";
+			}
+						
+			$addressesjs = "\n<!-- emo -->\n".'<script>'."\n var emo_addr = new Array();\n";
+			$addressesjs .= $this->addressesjs;
+			if ($this->jquery_load == 1) {
+				$addressesjs .= " jQuery(document).ready(function(){ emo_replace(); });\n</script>\n";
+			} else {
+				$addressesjs .= " addLoadEvent(emo_replace());\n</script>\n";
+			}
+			
+			// append emo addresses block to html body
+			if ($this->addrCount && strpos($output, $addressesjs) === false) {
+				$output = str_replace("</body>", "{$addressesjs}\n</body>", $output); 
+			}
+			
+			// append emo.js to html head if set
+			if ($this->emo_js_load == 2 && strpos($output, $this->emo_js_file) === false) {
+				$output = str_replace("</head>", '<script src="'.$this->emo_js_file.'" type="text/javascript"></script>'."\n</head>", $output); 
+			}
+			
 		}
 		
 		// return output
