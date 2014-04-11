@@ -18,7 +18,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Email Obfuscation (EMO)', 
-			'version' => 102, 
+			'version' => 103, 
 			'summary' => 'Email Obfuscation module for plaintext emails and email links with 64 base crypting.',
 			'href' => 'https://github.com/BlowbackDesign/emo',
 			'singular' => true, 
@@ -340,8 +340,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
   }
 	
 	public static function getModuleConfigInputfields(array $data) {
-    $module = wire('modules')->get('EmailObfuscation'); 
-    return $module->getConfig();
-  }
+		$module = wire('modules')->get('EmailObfuscation'); 
+		return $module->getConfig();
+	}
 	
 }
