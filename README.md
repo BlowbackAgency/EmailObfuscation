@@ -13,8 +13,8 @@ Both emo touched span and anchor elements have `emo_email` class name that you c
 
 ## Install
 
-1. Create new folder into /site/modules/ and rename it as you wish. 'EmailObfuscation' or simply 'emo' are good choises.
-2. Download the contents of this repository to your computer and upload it to newly created folder.
+1. Create a new folder `EmailObfuscation` into `/site/modules/`.
+2. Copy the contents of this repository to `/site/modules/EmailObfuscation/`.
 3. Login to processwire and go to Modules page and click 'Check for new modules'. Find emo and click install.
 4. You can make optional configuration changes in module admin page.
 
