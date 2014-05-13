@@ -158,7 +158,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		if (sizeof($matches) < 3) $matches[2] = $matches[1];
 		
 		// urlencode a possible subject
-		$matches[1] = preg_replace('!(.*\?(subject|body)=)([^\?]*)!ie', "'$1'.rawurlencode('$3')", $matches[1]);
+		$matches[1] = preg_replace_callback("!(.*\?(subject|body)=)([^\?]*)!i", function ($m) { return rawurlencode($m[3]); }, $matches[1]);
 		
 		// create html of the true link
 		if ($this->mailto || $matches[0] != $matches[1]) {
