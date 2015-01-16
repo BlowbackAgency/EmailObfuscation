@@ -215,13 +215,13 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			$timeStart = $mtime[1] + $mtime[0];
 		}
 		
-		// split output to parts per form tags
-		$parts = preg_split("#((?:<form).*(?:</form>))#isUu", $output, NULL, PREG_SPLIT_DELIM_CAPTURE);
+		// split output to parts per head, form and img tags
+		$parts = preg_split("#((?:<head).*(?:</head>))|((?:<form).*(?:</form>))|((?:<img).*(?:>))#isUu", $output, NULL, PREG_SPLIT_DELIM_CAPTURE);
 		
 		// replace mailto links and email addresses from the parts
 		$output = '';
 		foreach ($parts as $part) {
-			if (substr($part, 0, 5) != '<form') {
+			if (!in_array(substr($part, 0, 5), array('<head', '<form', '<img '))) {
 				$part = preg_replace_callback('#<a[^>]*mailto:([^\'"]+)[\'"][^>]*>(.*)</a>#iUu', array($this, 'encode'), $part);
 				$part = preg_replace_callback($this->pattern(), array($this, 'encode'), $part);
 			}
