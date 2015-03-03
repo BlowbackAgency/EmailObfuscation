@@ -222,7 +222,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$output = '';
 		foreach ($parts as $part) {
 			if (!in_array(substr($part, 0, 5), array('<head', '<form', '<img '))) {
-				$part = preg_replace_callback('#<a[^>]*mailto:([^\'"]+)[\'"][^>]*>(.*)</a>#iUu', array($this, 'encode'), $part);
+				$part = preg_replace_callback('#<a[^>]*mailto:([^\'"]+)[\'"][^>]*>(.*)</a>#isUu', array($this, 'encode'), $part);
 				$part = preg_replace_callback($this->pattern(), array($this, 'encode'), $part);
 			}
 			$output .= $part;
