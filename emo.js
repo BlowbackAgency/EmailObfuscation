@@ -24,7 +24,7 @@ function addLoadEvent(func) {
   else {
     window.onload = function() {
       oldonload();
-      func();
+      if(typeof func === "function") func();
     }
   }
 }
