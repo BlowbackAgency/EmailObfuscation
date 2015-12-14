@@ -18,7 +18,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Email Obfuscation (EMO)', 
-			'version' => 103, 
+			'version' => 104, 
 			'summary' => 'Email Obfuscation module for plaintext emails and email links with 64 base crypting.',
 			'href' => 'https://github.com/BlowbackDesign/emo',
 			'singular' => true, 
@@ -220,10 +220,10 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		// prevent output re-obfuscation
 		if($this->obfuscated !== false) return;
 
-		// don't add this to the admin pages
+		// prevent obfuscation on admin pages
 		if($page->template->flags & Template::flagSystem) return;
 
-		// don't add this if output isn't html page
+		// obfuscate only complete html document output
 		if(strpos($output, '</html>') === false) return;
 
 		// skip obfuscation on excluded templates
