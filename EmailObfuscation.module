@@ -36,8 +36,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		'jsLoad' => 2, 
 		'mailto' => 1, 
 		'debug' => false, 
-		'excludeTemplates' => null, 
-		'excludePages' => null, 
+		'excludeTemplates' => array(), 
+		'excludePages' => array(), 
 	);
 
 	/**
@@ -226,11 +226,11 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		// don't add this if output isn't html page
 		if(strpos($output, '</html>') === false) return;
 
-		// don't add this if template is excluded
-		if(is_array($this->excludeTemplates) && in_array($page->template->id, $this->excludeTemplates)) return;
+		// skip obfuscation on excluded templates
+		if(in_array($page->template->id, $this->excludeTemplates)) return;
 
-		// don't add this if page is excluded
-		if(is_array($this->excludePages) && in_array($page->id, $this->excludePages)) return;
+		// skip obfuscation on excluded pages
+		if(in_array($page->id, $this->excludePages)) return;
 
 		// debug start time
 		if($this->debug) {
@@ -320,9 +320,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$selector = '';
 		foreach($this->templates as $t) {
 			if(!($t->flags & Template::flagSystem)) {
-				if(is_array($this->excludeTemplates) && !in_array($t->id, $this->excludeTemplates)) {
-					$selector .= "|{$t->name}";
-				}
+				if(!in_array($t->id, $this->excludeTemplates)) $selector .= "|{$t->name}";
 			}
 		}
 		$f->findPagesSelector = "template=" . ltrim($selector, '|');
