@@ -72,6 +72,12 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	private $debugData = '';
 
 	/**
+	 * bool value for obfuscated output
+	 *
+	 */
+	private $obfuscated = false;
+
+	/**
 	 * constructor
 	 *
 	 */
@@ -211,6 +217,9 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$page = $event->object;
 		$output = $event->return;
 
+		// prevent output re-obfuscation
+		if($this->obfuscated !== false) return;
+
 		// don't add this to the admin pages
 		if($page->template->flags & Template::flagSystem) return;
 
@@ -267,7 +276,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		}
 
 		// return modified output
-		$event->return = $output;
+		if($event->return = $output) $this->obfuscated = true;
 	}
 
 	/**
