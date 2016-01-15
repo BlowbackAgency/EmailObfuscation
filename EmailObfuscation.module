@@ -117,7 +117,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	 *
 	 */
 	private function pattern() {
-		$atom = "[-!#$%'*+/=?^_`{|}~0-9A-Za-zÀ-ž]+";
+		$atom = "[-!#$%'*+=?^_`{|}~0-9A-Za-zÀ-ž]+";
 		$name = $atom.'(?:\\.'.$atom.')*';
 		$domain = $atom.'(?:\\.'.$atom.')+';
 		return "<({$name}@{$domain})>";
