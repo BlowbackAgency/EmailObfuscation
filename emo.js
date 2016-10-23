@@ -18,7 +18,7 @@
 // takes function name as the argument. e.g. addLoadEvent(doPopups);
 function addLoadEvent(func) {
   var oldonload = window.onload;
-  if (typeof window.onload != 'function') {
+  if(typeof window.onload != 'function') {
     window.onload = func;
   }
   else {
@@ -31,14 +31,14 @@ function addLoadEvent(func) {
 
 // Decrypt all email addresses
 function emo_replace() {
-  for (var i = 1; i < emo_addr.length; i++) {
+  for(var i = 1; i < emo_addr.length; i++) {
     var id = 'emo_email_' + i;
     var elem = document.getElementById(id);
-    if (elem) {
-      if (elem.firstChild) {
+    if(elem) {
+      if(elem.firstChild) {
         elem.removeChild(elem.firstChild);
       }
-      elem.innerHTML = decrypt_string(i);
+      elem.outerHTML = decrypt_string(i);
     }
   }
 }
@@ -48,14 +48,14 @@ var decryption_cache = new Array();
 function decrypt_string(n) {
   var cache_index = "'"+n+"'";
 
-  if(decryption_cache[cache_index])		// If this string has already been decrypted, just
-    return decryption_cache[cache_index];	// return the cached version.
+  // If this string has already been decrypted, just return the cached version
+  if(decryption_cache[cache_index]) return decryption_cache[cache_index];
 
-  if(emo_addr[n])				// Is crypted_string an index into the addresses array?
-    var crypted_string = emo_addr[n];
+  // Is crypted_string an index into the addresses array?
+  if(emo_addr[n]) var crypted_string = emo_addr[n];
 
-  if(!crypted_string.length)			// Make sure the string is actually a string
-    return "Error, not a valid index.";
+  // Make sure the string is actually a string
+  if(!crypted_string.length) return "Error, not a valid index.";
 
   var decrypted_string = decode_base64(crypted_string);
 
