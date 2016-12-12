@@ -204,8 +204,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 
 		// create html of the link
 		if($this->mailto || $matches[0] != $matches[1]) {
-			if(strpos($matches[0], 'class=')) $link = preg_replace('/( class=[\'"])/', '$1' . "emo_email ", $matches[0]);
-			else if(strpos($matches[0], '<a')) $link = str_replace('<a', '<a class="emo_email"', $matches[0]);
+			if(strpos($matches[0], 'class=') !== false) $link = preg_replace('/( class=[\'"])/', '$1' . "emo_email ", $matches[0]);
+			else if(strpos($matches[0], '<a') !== false) $link = str_replace('<a', '<a class="emo_email"', $matches[0]);
 			else $link = '<a class="emo_email" href="mailto:' . $matches[1] . '">' . $matches[2] . '</a>';
 		}
 
