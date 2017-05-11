@@ -209,9 +209,16 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			else $link = '<a class="emo_email" href="mailto:' . $matches[1] . '">' . $matches[2] . '</a>';
 		}
 
+		if($this->wire('languages')) {
+			$userLanguage = $this->wire('user')->language;
+			$lang         = $userLanguage->isDefault() ? '' : "__$userLanguage->id";
+		} else {
+			$lang = '';
+		}
+
 		// create html of the fake link
 		$fakeLink = '<span id="emo_email_' . $this->addrCount . '" class="emo_email">';
-		$fakeLink .= preg_match(self::pattern(), $matches[2]) ? $this->noscript : $matches[2];
+		$fakeLink .= preg_match(self::pattern(), $matches[2]) ? $this->{"noscript$lang"} : $matches[2];
 		$fakeLink .= '</span>';
 
 		// did we use the same link before?
