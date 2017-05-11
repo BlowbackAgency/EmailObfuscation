@@ -354,6 +354,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->label = 'Replace text string';
 		$f->attr('name', 'noscript');
 		$f->attr('value', $this->noscript);
+		$f->useLanguages = true;
 		$inputfields->add($f);
 
 		$f = $this->modules->get('InputfieldRadios');
