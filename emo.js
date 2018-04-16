@@ -85,3 +85,5 @@ function decode_base64(data) {
   }
   return out;
 }
+
+emo_replace();
