@@ -85,3 +85,5 @@ function decode_base64(data) {
   }
   return out;
 }
+
+if (typeof(emo_addr) !== 'undefined') emo_replace();
