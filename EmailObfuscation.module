@@ -182,6 +182,9 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		// filter out images detected as false positives (@2x file names)
 		if(preg_match('/\.(jpe?g|png|gif|bmp)$/i', $matches[0])) return $matches[0];
 
+		// set lang id for translated noscript text
+		$lang = $this->wire('languages') ? $this->user->language->isDefault() ? '' : "__{$this->user->language->id}" : '';
+
 		// counter and key array
 		if(!$this->addrCount) {
 			mt_srand((double) microtime() * 1000000); // random generator seed
@@ -211,7 +214,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 
 		// create html of the fake link
 		$fakeLink = '<span id="emo_email_' . $this->addrCount . '" class="emo_email">';
-		$fakeLink .= preg_match(self::pattern(), $matches[2]) ? $this->noscript : $matches[2];
+		$fakeLink .= preg_match(self::pattern(), $matches[2]) ? $this->{"noscript$lang"} : $matches[2];
 		$fakeLink .= '</span>';
 
 		// did we use the same link before?
@@ -360,6 +363,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->label = 'Replace text string';
 		$f->attr('name', 'noscript');
 		$f->attr('value', $this->noscript);
+		$f->useLanguages = true;
 		$inputfields->add($f);
 
 		$f = $this->modules->get('InputfieldRadios');
