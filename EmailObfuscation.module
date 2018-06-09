@@ -128,7 +128,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$this->addHook('Sanitizer::emo', $this, 'emo');
 
 		// hook render method after page render to modify output
-		$this->addHookAfter('Page::render', $this, 'render');
+		$this->addHookAfter('TemplateFile::render', $this, 'render');
 	}
 
 	/**
@@ -272,64 +272,70 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	 */
 	public function render($event) {
 
+		if($this->obfuscated) return;
 		if($this->debug) $time = self::timer();
 
-		$page = $event->object;
-		$output = $event->return;
+		$templateFile = $event->object;
+		$options = $templateFile->options;
 
-		// prevent output re-obfuscation
-		if($this->obfuscated !== false) return;
+		// checking for $options, which we know is given to page renders
+		// this is to make sure it's not some other use of TemplateFile
+		if(is_array($options) && array_key_exists('pageStack', $options)) {
 
-		// keep output untouched at admin pages
-		if($page->template->flags & Template::flagSystem) return;
+			$output = $event->return;
+			$page = $templateFile->page;
 
-		// touch output only at complete html document
-		if(strpos($output, '</html>') === false) return;
+			// keep output untouched at admin pages
+			if($page->template->flags & Template::flagSystem) return;
 
-		// return on manual mode when no obfuscated addresses found
-		if($this->mode == self::modeManual && !$this->addrCount) return;
+			// touch output only at complete html document
+			if(strpos($output, '</html>') === false) return;
 
-		// return on include mode when page not in selected templates/pages
-		if($this->mode == self::modeInclude && !$this->addrCount) {
-			if(!in_array($page->template->id, $this->selectedTemplates)
-			&& !in_array($page->id, $this->selectedPages)) return;
+			// exit in manual mode when there's no addresses to obfuscate
+			if($this->mode == self::modeManual && !$this->addrCount) return;
+
+			// exit in include mode when page is not in selected templates/pages
+			if($this->mode == self::modeInclude && !$this->addrCount) {
+				if(!in_array($page->template->id, $this->selectedTemplates)
+				&& !in_array($page->id, $this->selectedPages)) return;
+			}
+
+			// exit in exclude mode when page is in selected templates/pages
+			if($this->mode == self::modeExclude && !$this->addrCount) {
+				if(in_array($page->template->id, $this->selectedTemplates)
+				|| in_array($page->id, $this->selectedPages)) return;
+			}
+
+			// auto obfuscate output
+			if($this->mode != self::modeManual && !$this->addrCount) {
+				$output = $this->obfuscate($output);
+			}
+
+			// create addresses script block
+			$addrScript = "\n<!-- emo -->\n<script>\n var emo_addr = new Array();\n";
+			$addrScript .= "{$this->addrScript} if(window.addLoadEvent) addLoadEvent(emo_replace());\n</script>\n";
+
+			// append debug info to output
+			if($this->debug) {
+				$this->debugTime += (self::timer() - $time);
+				$output .= "\n<!-- \n\n EMO DEBUG DATA\n\n";
+				$output .= " Email crypting took {$this->debugTime} seconds\n";
+				$output .= "\n Found " . count($this->links) . " matches:\n\n{$this->debugData}-->";
+			}
+
+			// append addresses block to html body
+			if($this->addrCount && strpos($output, $addrScript) === false) {
+				$output = str_replace("</body>", "{$addrScript}\n</body>", $output);
+			}
+
+			// append emo.js to html head if set
+			if($this->jsLoad == self::loadHead && strpos($output, $this->jsFile) === false) {
+				$output = str_replace("</head>", "<script src='{$this->jsFile}'></script>\n</head>", $output);
+			}
+
+			// return modified output
+			if($event->return = $output) $this->obfuscated = true;
 		}
-
-		// return on exclude mode when page is in selected templates/pages
-		if($this->mode == self::modeExclude && !$this->addrCount) {
-			if(in_array($page->template->id, $this->selectedTemplates)
-			|| in_array($page->id, $this->selectedPages)) return;
-		}
-
-		// auto obfuscate output
-		if($this->mode != self::modeManual && !$this->addrCount) {
-			$output = $this->obfuscate($output);
-		}
-
-		// create addresses script block
-		$addrScript = "\n<!-- emo -->\n<script>\n var emo_addr = new Array();\n";
-		$addrScript .= "{$this->addrScript} if(window.addLoadEvent) addLoadEvent(emo_replace());\n</script>\n";
-
-		// append debug info to output
-		if($this->debug) {
-			$this->debugTime += (self::timer() - $time);
-			$output .= "\n<!-- \n\n EMO DEBUG DATA\n\n";
-			$output .= " Email crypting took {$this->debugTime} seconds\n";
-			$output .= "\n Found " . count($this->links) . " matches:\n\n{$this->debugData}-->";
-		}
-
-		// append addresses block to html body
-		if($this->addrCount && strpos($output, $addrScript) === false) {
-			$output = str_replace("</body>", "{$addrScript}\n</body>", $output);
-		}
-
-		// append emo.js to html head if set
-		if($this->jsLoad == self::loadHead && strpos($output, $this->jsFile) === false) {
-			$output = str_replace("</head>", "<script src='{$this->jsFile}'></script>\n</head>", $output);
-		}
-
-		// return modified output
-		if($event->return = $output) $this->obfuscated = true;
 	}
 
 	/**
