@@ -5,29 +5,13 @@
  *  Modified: 2008-01-17 - v1.2 - Email encoding
  *  Modified: 2008-01-19 - v1.3 - Custom Base64 encoding
  *  Modified: 2013-02-27 - v1.4 - Unicode characters fix
+ *  Modified: 2018-06-10 - v1.5 - Remove onload event init
  *  Name: EMO Email Obfuscation
  *  Description: These javascript functions replace html placeholder
  *    span elements with decrypted email addresses.
  *  License: GPL
  */
 
-
-// addLoadEvent is Simon Willison's function that allows for convenient
-// addition of multiple fuctions that are all supposed to be triggered
-// on window.onload event.
-// takes function name as the argument. e.g. addLoadEvent(doPopups);
-function addLoadEvent(func) {
-  var oldonload = window.onload;
-  if(typeof window.onload != 'function') {
-    window.onload = func;
-  }
-  else {
-    window.onload = function() {
-      oldonload();
-      if(typeof func === "function") func();
-    }
-  }
-}
 
 // Decrypt all email addresses
 function emo_replace() {
@@ -84,4 +68,9 @@ function decode_base64(data) {
       out += String.fromCharCode(c3);
   }
   return out;
+}
+
+// Init deobfuscation
+if(typeof(emo_addr) !== 'undefined') {
+  emo_replace();
 }

@@ -40,7 +40,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	 */
 	const loadManual = 0;
 	const loadScripts = 1;
-	const loadHead = 2;
+	const loadAuto = 2;
 
 	/**
 	 * default configuration options
@@ -49,7 +49,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	private $options = array(
 		'noscript' => 'Enable JavaScript to view protected content.',
 		'jsFile' => 'emo.min.js',
-		'jsLoad' => self::loadHead,
+		'jsLoad' => self::loadAuto,
 		'mode' => self::modeExclude,
 		'mailto' => true,
 		'debug' => false,
@@ -315,8 +315,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			}
 
 			// create addresses script block
-			$addrScript = "\n<!-- emo -->\n<script>\n var emo_addr = new Array();\n";
-			$addrScript .= "{$this->addrScript} if(window.addLoadEvent) addLoadEvent(emo_replace());\n</script>\n";
+			$addrScript = "\n<!-- emo -->\n<script>\n var emo_addr = new Array();\n{$this->addrScript}</script>\n";
 
 			// append debug info to output
 			if($this->debug) {
@@ -326,14 +325,14 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 				$output .= "\n Found " . count($this->links) . " matches:\n\n{$this->debugData}-->";
 			}
 
+			// append emo.js to addresses if set
+			if($this->jsLoad == self::loadAuto && strpos($output, $this->jsFile) === false) {
+				$addrScript .= "<script src='{$this->jsFile}' async></script>\n";
+			}
+
 			// append addresses block to html body
 			if($this->addrCount && strpos($output, $addrScript) === false) {
 				$output = str_replace("</body>", "{$addrScript}\n</body>", $output);
-			}
-
-			// append emo.js to html head if set
-			if($this->jsLoad == self::loadHead && strpos($output, $this->jsFile) === false) {
-				$output = str_replace("</head>", "<script src='{$this->jsFile}'></script>\n</head>", $output);
 			}
 
 			// return modified output
@@ -382,7 +381,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		$f->attr('value', $this->jsLoad);
 		$f->addOption(self::loadManual, 'Load file manually');
 		$f->addOption(self::loadScripts, 'Load file to `$config->scripts` array');
-		$f->addOption(self::loadHead, 'Prepend file to head section');
+		$f->addOption(self::loadAuto, 'Append file to page automatically');
 		$f->columnWidth = 50;
 		$inputfields->add($f);
 
