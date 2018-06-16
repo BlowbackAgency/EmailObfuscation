@@ -247,7 +247,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 
 		if($this->debug) $time = self::timer();
 
-		$tags = "#((?:<head).*(?:<\/head>))|((?:<form).*(?:<\/form>))#isUu";
+		$tags = "#((?:<head).*(?:<\/head>))|((?:<form).*(?:<\/form>))|((?:<script).*(?:<\/script>))#isUu";
 		$mailto = "#<a[^>]*mailto:([^'\"@]+)@([^'\"]+)['\"][^>]*>(.*)<\/a>#isUu";
 		$output = "";
 
@@ -255,7 +255,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 		foreach(preg_split($tags, $html, NULL, PREG_SPLIT_DELIM_CAPTURE) as $str) {
 
 			// encode mailto links and email addresses from the parts
-			if(!in_array(substr($str, 0, 5), array('<head', '<form'))) {
+			if(!in_array(substr($str, 0, 5), array('<head', '<form', '<scri'))) {
 				$str = preg_replace_callback($mailto, array($this, 'encode'), $str);
 				$str = preg_replace_callback(self::pattern(), array($this, 'encode'), $str);
 			}
