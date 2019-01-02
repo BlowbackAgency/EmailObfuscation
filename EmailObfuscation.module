@@ -317,14 +317,6 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			// create addresses script block
 			$addrScript = "\n<!-- emo -->\n<script>\n var emo_addr = new Array();\n{$this->addrScript}</script>\n";
 
-			// append debug info to output
-			if($this->debug) {
-				$this->debugTime += (self::timer() - $time);
-				$output .= "\n<!-- \n\n EMO DEBUG DATA\n\n";
-				$output .= " Email crypting took {$this->debugTime} seconds\n";
-				$output .= "\n Found " . count($this->links) . " matches:\n\n{$this->debugData}-->";
-			}
-
 			// append emo.js to addresses if set
 			if($this->jsLoad == self::loadAuto && strpos($output, $this->jsFile) === false) {
 				$addrScript .= "<script src='{$this->jsFile}' async defer></script>\n";
@@ -333,6 +325,14 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 			// append addresses block to html body
 			if($this->addrCount && strpos($output, $addrScript) === false) {
 				$output = str_replace("</body>", "{$addrScript}\n</body>", $output);
+			}
+
+			// append debug info to output
+			if($this->debug) {
+				$this->debugTime += (self::timer() - $time);
+				$output .= "\n<!-- \n\n EMO DEBUG DATA\n\n";
+				$output .= " Email crypting took {$this->debugTime} seconds\n";
+				$output .= "\n Found " . count($this->links) . " matches:\n\n{$this->debugData}-->";
 			}
 
 			// return modified output
