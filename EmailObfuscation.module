@@ -18,7 +18,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Email Obfuscation (EMO)',
-			'version' => 110,
+			'version' => 111,
 			'summary' => 'Email Obfuscation module for plaintext emails and email links with 64 base crypting.',
 			'href' => 'https://github.com/BlowbackDesign/emo',
 			'singular' => true,
