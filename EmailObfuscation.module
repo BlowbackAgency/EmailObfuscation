@@ -327,7 +327,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule {
 
 			// append emo.js to addresses if set
 			if($this->jsLoad == self::loadAuto && strpos($output, $this->jsFile) === false) {
-				$addrScript .= "<script src='{$this->jsFile}' async></script>\n";
+				$addrScript .= "<script src='{$this->jsFile}' async defer></script>\n";
 			}
 
 			// append addresses block to html body
