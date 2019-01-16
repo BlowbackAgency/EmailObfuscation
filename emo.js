@@ -64,4 +64,6 @@ var emo = {
 
 };
 
-window.addEventListener('load', emo.init());
+window.addEventListener('load', function() {
+  emo.init();
+});
