@@ -1,5 +1,8 @@
 # ignore any files beginning with .
 \.*
 
-# except do not ignore .gitignore
+# except do not ignore this file
 !.gitignore
+
+# ignore node modules
+node_modules/
