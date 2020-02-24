@@ -1,0 +1,12 @@
+{
+  "title": "Email Obfuscation (EMO)",
+  "version": 120,
+  "summary": "Email Obfuscation module for plaintext emails and email links with 64 base crypting.",
+  "author": "Roope",
+  "href": "https://github.com/BlowbackDesign/EmailObfuscation",
+  "singular": true,
+  "autoload": true,
+  "requires": [
+    "ProcessWire>=2.2.4"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "emailobfuscation",
+  "version": "1.2.0",
+  "description": "Email Obfuscation module for email addresses with 64 base crypting.",
+  "author": "Roope",
+  "license": "MIT",
+  "main": "emo.js",
+  "homepage": "https://github.com/BlowbackDesign/EmailObfuscation",
+  "bugs": {
+    "url": "https://github.com/BlowbackDesign/EmailObfuscation/issues"
+  },
+  "scripts": {
+    "uglify": "uglifyjs emo.js -c -o emo.min.js",
+    "build": "npm run uglify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlowbackDesign/EmailObfuscation.git"
+  },
+  "keywords": [
+    "ProcessWire",
+    "Email",
+    "Obfuscation",
+    "EMO"
+  ],
+  "devDependencies": {
+    "uglify-js": "^3.7.7"
+  }
+}
