@@ -1,7 +1,7 @@
 {
   "title": "Email Obfuscation (EMO)",
   "version": 120,
-  "summary": "Email Obfuscation module for plaintext emails and email links with 64 base crypting.",
+  "summary": "Email Obfuscation module for email addresses with 64 base crypting.",
   "author": "Roope",
   "href": "https://github.com/BlowbackDesign/EmailObfuscation",
   "singular": true,
