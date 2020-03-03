@@ -1,6 +1,6 @@
 {
   "name": "emailobfuscation",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Email Obfuscation module for email addresses with 64 base crypting.",
   "author": "Roope",
   "license": "MIT",
