@@ -349,7 +349,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 
 		// checking for $options, which we know is given to page renders
 		// this is to make sure it's not some other use of TemplateFile
-		if(!is_array($options) && !array_key_exists('pageStack', $options)) {
+		if(is_array($options) && !array_key_exists('pageStack', $options)) {
 			return false;
 		}
 
