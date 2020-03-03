@@ -338,9 +338,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 	 */
 	private function isRenderAllowed(HookEvent $event)
 	{
-		$templateFile = $event->object;
-		$options = $templateFile->options;
-		$page = $templateFile->page;
+		$options = $event->object->options;
+		$page = $event->object->page;
 
 		// keep out the admin pages
 		if($page->template->flags & Template::flagSystem) {
