@@ -5,8 +5,8 @@
   "author": "Roope",
   "href": "https://github.com/BlowbackDesign/EmailObfuscation",
   "singular": true,
-  "autoload": true,
+  "autoload": "template!=admin",
   "requires": [
-    "ProcessWire>=2.2.4"
+    "ProcessWire>=2.3.1"
   ]
 }

@@ -341,7 +341,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 		$options = $event->object->options;
 		$page = $event->object->page;
 
-		// keep out the admin pages
+		// while admin templates are restricted by conditional autoload we make sure
+		// that possible other custom admin templates are not triggering emo render
 		if($page->template->flags & Template::flagSystem) {
 			return false;
 		}
