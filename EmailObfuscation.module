@@ -408,14 +408,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			if($this->debug) $scriptRows[] = "emo.debug = true;";
 
 			// add emo script to head
-			$script = "\n<script>";
-			foreach($scriptRows as $row) $script .= "\n{$row}";
-			$script .= "\n</script>\n";
-			if(strpos($output, '<script') !== false && (strpos($output, '<script') < strpos($output, '</head>'))) {
-				$output = substr_replace($output, "{$script}<script", strpos($output, '<script'), strlen('<script'));
-			} else {
-				$output = str_replace("</head>", "{$script}</head>", $output);
-			}
+			$script = "\n<script>\n" . implode("\n", $scriptRows) . "\n</script>\n";
+			$output = str_replace("</head>", "{$script}</head>", $output);
 
 			// add emo.js to body
 			if(strpos($output, $this->jsFile) === false) {
