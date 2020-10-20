@@ -400,17 +400,6 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 
 		if($this->addrCount) {
 
-			// head script data
-			$scriptRows = array(
-				"var emo = emo || {};",
-				"emo.key = '" . $this->getKey() . "';",
-			);
-			if($this->debug) $scriptRows[] = "emo.debug = true;";
-
-			// add emo script to head
-			$script = "\n<script>\n" . implode("\n", $scriptRows) . "\n</script>\n";
-			$output = str_replace("</head>", "{$script}</head>", $output);
-
 			// add emo.js to body
 			if(strpos($output, $this->jsFile) === false) {
 				$script = '';
@@ -424,6 +413,17 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 					$output = str_replace("</body>", "{$script}</body>", $output);
 				}
 			}
+
+			// body script data
+			$scriptRows = array(
+				"var emo = emo || {};",
+				"emo.key = '" . $this->getKey() . "';",
+			);
+			if($this->debug) { $scriptRows[] = "emo.debug = true;"; }
+
+			// append emo script to body
+			$script = "\n<script>" . implode(" ", $scriptRows) . "</script>\n";
+			$output = str_replace("</body>", "{$script}</body>", $output);
 
 			// append debug info to output
 			if($this->debug) {

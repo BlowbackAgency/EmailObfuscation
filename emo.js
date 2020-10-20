@@ -63,10 +63,8 @@ emo.decode = function(data) {
   return out;
 };
 
-if(document.readyState === 'complete') {
+if(emo.key !== undefined) {
   emo.init();
 } else {
-  window.addEventListener('load', function() {
-    emo.init();
-  });
+  window.addEventListener('DOMContentLoaded', emo.init);
 }
