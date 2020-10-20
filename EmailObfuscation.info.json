@@ -1,6 +1,6 @@
 {
   "title": "Email Obfuscation (EMO)",
-  "version": 123,
+  "version": 124,
   "summary": "Email Obfuscation module for email addresses with 64 base crypting.",
   "author": "Jukka Hankaniemi (Roope)",
   "href": "https://github.com/BlowbackDesign/EmailObfuscation",
