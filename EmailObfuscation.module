@@ -390,6 +390,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 		if(!$this->isRenderAllowed($event)) return;
 		if($this->debug) $time = Debug::timer();
 
+		$info = $this->modules->getModuleInfo($this);
 		$page = $event->object->page;
 		$output = $event->return;
 
@@ -404,7 +405,8 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			if(strpos($output, $this->jsFile) === false) {
 				$script = '';
 				if($this->jsLoad == self::loadAuto) {
-					$script .= "\n<script src='{$this->jsFile}' async defer></script>\n";
+					$v = $info['version'];
+					$script .= "\n<script src='{$this->jsFile}?v={$v}' async defer></script>\n";
 				}
 				if($this->jsLoad == self::loadInline) {
 					$script = "\n<script>\n" . file_get_contents($this->jsFile) . "</script>\n";
@@ -430,7 +432,6 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 				$data = array();
 				foreach($this->options as $key => $val) $data[$key] = $this->$key;
 				$data = array_merge($this->debugData, $data);
-				$info = $this->modules->getModuleInfo($this);
 				$this->debugTime += Debug::timer($time);
 				$output .= "\n<!-- \n\n\t" . $info['title'] . " v.{$info['version']}";
 				$output .= "\n\n\tCrypted {$this->addrCount} email address in {$this->debugTime} seconds\n\n";
