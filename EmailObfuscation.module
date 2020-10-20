@@ -293,9 +293,9 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 		$hash = $this->getEmailHashByKey($key);
 
 		// create html of the crypted link
-		$crypted = '<span data-emo="' . $hash . '">';
+		$crypted = '<noscript data-emo="' . $hash . '">';
 		$crypted .= preg_match(self::pattern(), $anchor) ? $this->{"noscript$this->lang"} : $anchor;
-		$crypted .= '</span>';
+		$crypted .= '</noscript>';
 
 		// create email debug data row
 		if($this->debug) {

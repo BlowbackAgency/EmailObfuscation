@@ -3,8 +3,8 @@
 **Email Obfuscation module for email addresses with 64 base crypting**
 
 This module finds all plaintext emails and email links from the document and
-replaces them with span elements including configurable replace text. All the
-addresses are encoded to 64 base strings and stored in spans data attributes.
+replaces them with noscript elements with configurable replace text. All the
+addresses are encoded to 64 base strings and stored in noscript data attributes.
 Then on client side we decode these strings back to their original state.
 
 ## Install
