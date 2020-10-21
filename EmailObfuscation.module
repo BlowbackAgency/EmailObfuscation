@@ -418,7 +418,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 				$script = '';
 				if($this->jsLoad == self::loadAuto) {
 					$v = $info['version'];
-					$script .= "\n<script src='{$this->jsFile}?v={$v}' async defer></script>\n";
+					$script .= "\n<script src=\"{$this->jsFile}?v={$v}\" async defer></script>\n";
 				}
 				if($this->jsLoad == self::loadInline) {
 					$script = "\n<script>\n" . file_get_contents($this->jsFile) . "</script>\n";
