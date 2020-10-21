@@ -1,0 +1,6 @@
+# classifie .module as .php
+*.module linguist-language=PHP
+
+# do not export git dotfiles
+.gitignore export-ignore
+.gitattributes export-ignore
