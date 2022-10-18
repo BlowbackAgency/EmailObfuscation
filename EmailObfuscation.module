@@ -313,7 +313,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 	private function obfuscate($html)
 	{
 		$skip = array(
-			'<head' => "((?:<head).*(?:<\/head>))",
+			'<head' => "((?:<head(?!er)).*(?:<\/head>))",
 			'<scri' => "((?:<script).*(?:<\/script>))",
 			'<text' => "((?:<textarea).*(?:<\/textarea>))",
 			'<opti' => "((?:<option).*(?:<\/option>))",
