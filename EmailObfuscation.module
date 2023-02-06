@@ -4,7 +4,7 @@
  *
  * Email Obfuscation module for email addresses with 64 base crypting.
  *
- * @version 1.2.5
+ * @version 1.2.6
  * @copyright Blowback https://github.com/BlowbackDesign
  * @license MIT http://opensource.org/licenses/MIT
  *
@@ -244,8 +244,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			$e2 = (($c1 & 3) << 4) + ($c2 >> 4);
 			$e3 = (($c2 & 15) << 2) + ($c3 >> 6);
 			$e4 = $c3 & 63;
-			if(is_nan($c2)) $e3 = $e4 = 64;
-			else if(is_nan($c3)) $e4 = 64;
+
 			$out .= $key[$e1] . $key[$e2] . $key[$e3] . $key[$e4];
 		}
 		return $out;
