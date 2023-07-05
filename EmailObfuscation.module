@@ -440,7 +440,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			$output = str_replace("</body>", "{$script}</body>", $output);
 
 			// append debug info to output
-			if($this->debug && $this->user->isLoggedin()) {
+			if($this->debug || $this->user->isLoggedin()) {
 				$data = array();
 				foreach($this->options as $key => $val) $data[$key] = $this->$key;
 				$data = array_merge($this->debugData, $data);
