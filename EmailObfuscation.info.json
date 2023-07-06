@@ -7,6 +7,7 @@
   "singular": true,
   "autoload": "template!=admin",
   "requires": [
-    "ProcessWire>=2.3.1"
+    "PHP>=5.4.0",
+    "ProcessWire>=3.0.35"
   ]
 }
