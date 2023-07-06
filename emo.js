@@ -60,6 +60,10 @@ emo.decode = function(data) {
     if(e3 != 64) out += String.fromCharCode(c2);
     if(e4 != 64) out += String.fromCharCode(c3);
   }
+  if(out.includes(String.fromCharCode(0x00))) {
+    out = out.replaceAll(String.fromCharCode(0x3C) + String.fromCharCode(0x00), '');
+    out = out.replaceAll(String.fromCharCode(0x00), '');
+  }
   return out;
 };
 
