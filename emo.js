@@ -3,12 +3,9 @@
  *
  * Email Obfuscation module for email addresses with 64 base crypting.
  *
- * https://github.com/BlowbackDesign/EmailObfuscation
- * Copyright (C) 2020 Blowback https://www.blowback.fi
- * MIT license http://opensource.org/licenses/MIT
- *
- * This ProcessWire module is originally a fork from a MODX Evolution plugin:
- * https://modx.com/extras/package/emoemailobfuscation
+ * https://github.com/BlowbackAgency/EmailObfuscation
+ * Copyright (C) 2023 Blowback https://blowback.fi
+ * MIT license https://opensource.org/license/mit/
  *
  */
 

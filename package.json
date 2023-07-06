@@ -5,9 +5,9 @@
   "author": "Jukka Hankaniemi (Roope)",
   "license": "MIT",
   "main": "emo.js",
-  "homepage": "https://github.com/BlowbackDesign/EmailObfuscation",
+  "homepage": "https://github.com/BlowbackAgency/EmailObfuscation",
   "bugs": {
-    "url": "https://github.com/BlowbackDesign/EmailObfuscation/issues"
+    "url": "https://github.com/BlowbackAgency/EmailObfuscation/issues"
   },
   "scripts": {
     "uglify": "uglifyjs emo.js -c -o emo.min.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BlowbackDesign/EmailObfuscation.git"
+    "url": "git+https://github.com/BlowbackAgency/EmailObfuscation.git"
   },
   "keywords": [
     "ProcessWire",

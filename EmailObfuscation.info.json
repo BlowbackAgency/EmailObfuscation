@@ -3,7 +3,7 @@
   "version": 125,
   "summary": "Email Obfuscation module for email addresses with 64 base crypting.",
   "author": "Jukka Hankaniemi (Roope)",
-  "href": "https://github.com/BlowbackDesign/EmailObfuscation",
+  "href": "https://github.com/BlowbackAgency/EmailObfuscation",
   "singular": true,
   "autoload": "template!=admin",
   "requires": [

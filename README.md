@@ -56,11 +56,10 @@ automatic obfuscation.
 
 ## Thanks
 
-This is ProcessWire module fork from [MODX Evolution plugin][2].
+This ProcessWire module originates from MODX Evolution plugin.
 
 ## License
 
-[MIT License](http://opensource.org/licenses/MIT)
+[MIT License](https://opensource.org/license/mit/)
 
 [1]: https://modules.processwire.com/install-uninstall/
-[2]: http://modx.com/extras/package/emoemailobfuscation
