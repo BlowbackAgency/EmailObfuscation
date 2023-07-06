@@ -9,7 +9,15 @@ Then on client side we decode these strings back to their original state.
 
 ## Install
 
+### ProcessWire installation
+
 Install this module using standard [install procedure in ProcessWire][1].
+
+### Using Composer
+
+```console
+composer require blowback/emailobfuscation
+```
 
 ## Options
 

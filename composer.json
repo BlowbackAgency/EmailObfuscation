@@ -1,0 +1,22 @@
+{
+  "name": "blowback/emailobfuscation",
+  "description": "Email Obfuscation module for email addresses with 64 base crypting.",
+  "type": "pw-module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jukka Hankaniemi (Roope)",
+      "homepage": "https://blowback.fi"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "wireframe-framework/processwire-composer-installer": "^1.0.0"
+  },
+  "keywords": [
+    "ProcessWire",
+    "Email",
+    "Obfuscation",
+    "EMO"
+  ]
+}
