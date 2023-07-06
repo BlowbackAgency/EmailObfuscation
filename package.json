@@ -24,6 +24,6 @@
     "EMO"
   ],
   "devDependencies": {
-    "uglify-js": "^3.7.7"
+    "uglify-js": "^3.17.4"
   }
 }
