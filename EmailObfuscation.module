@@ -437,7 +437,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			$output = str_replace("</body>", "{$script}</body>", $output);
 
 			// append debug info to output
-			if($this->debug || $this->user->isLoggedin()) {
+			if($this->debug && $this->config->debug) {
 				$data = array();
 				foreach($this->options as $key => $val) $data[$key] = $this->$key;
 				$data = array_merge($this->debugData, $data);
@@ -538,7 +538,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 
 		$f = $this->modules->get('InputfieldCheckbox');
 		$f->label = 'Debug';
-		$f->description = 'Prepends debug info to html output when enabled.';
+		$f->description = 'Prepend debugging info to html output. Also needs PW debug mode to be enabled.';
 		$f->attr('name', 'debug');
 		if($this->debug) $f->attr('checked', 'checked');
 		$f->collapsed = 2;
