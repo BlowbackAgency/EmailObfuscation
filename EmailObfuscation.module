@@ -208,7 +208,7 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 	 */
 	private function generateKey()
 	{
-		mt_srand((double) microtime() * 1000000);
+		mt_srand();
 		return str_shuffle($this->base);
 	}
 
