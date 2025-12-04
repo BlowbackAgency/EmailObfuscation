@@ -4,7 +4,7 @@
  *
  * Email Obfuscation module for email addresses with 64 base crypting.
  *
- * @version 1.3.1
+ * @version 1.3.2
  * @copyright Blowback https://github.com/BlowbackDesign
  * @license MIT https://opensource.org/license/mit/
  *
@@ -304,12 +304,11 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 	}
 
 	/**
-	 * obfuscate email addresses at given (html) string
-	 *
+	 * get skip patterns for obfuscation
 	 */
-	private function obfuscate($html)
+	private function getSkipPatterns()
 	{
-		$skip = array(
+		return array(
 			'<head' => "((?:<head(?!er)).*(?:<\/head>))",
 			'<scri' => "((?:<script).*(?:<\/script>))",
 			'<text' => "((?:<textarea).*(?:<\/textarea>))",
@@ -320,8 +319,17 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 			'label' => "((?:label=['\"]).*(?:['\"]))",
 			'href=' => "((?:href=['\"](?!mailto:)(?:[a-z]+:|\/|\\#)).*(?:['\"]))",
 			'data-' => "((?:data-[A-Z0-9.-]+=['\"]).*(?:['\"]))",
+			'https' => "(https?://[^\s<>\"']+?)",
 		);
+	}
 
+	/**
+	 * obfuscate email addresses at given (html) string
+	 *
+	 */
+	private function obfuscate($html)
+	{
+		$skip = $this->getSkipPatterns();
 		$tags = "#" . implode('|', $skip) . "#isUu";
 		$mailto = "#<a[^>]*mailto:([^'\"@]+)@([^'\"]+)['\"][^>]*>(.*)<\/a>#isUu";
 		$output = "";
@@ -469,6 +477,108 @@ class EmailObfuscation extends WireData implements Module, ConfigurableModule
 		}
 
 		if($this->debug) $this->debugTime += Debug::timer($time);
+	}
+
+	/**
+	 * test how skip patterns split given html
+	 *
+	 * Usage:
+	 *
+	 * $emo = $modules->get('EmailObfuscation');
+	 * $result = $emo->testObfuscate('<a href="mailto:test@example.com">Contact</a>');
+	 * // Returns: ['input' => '...', 'output' => '...', 'parts' => [['action' => 'SKIP|OBFUSCATE', 'content' => '...'], ...]]
+	 */
+	public function testObfuscate($html)
+	{
+		$skip = $this->getSkipPatterns();
+		$tags = "#" . implode('|', $skip) . "#isUu";
+		$parts = preg_split($tags, $html, 0, PREG_SPLIT_NO_EMPTY|PREG_SPLIT_DELIM_CAPTURE);
+
+		$results = array(
+			'input' => $html,
+			'output' => $this->obfuscate($html),
+			'parts' => array(),
+		);
+		foreach($parts as $i => $str) {
+			$skipped = in_array(substr($str, 0, 5), array_keys($skip));
+			$results['parts'][] = array(
+				'action' => $skipped ? 'SKIP' : 'OBFUSCATE',
+				'content' => $str,
+			);
+		}
+
+		return $results;
+	}
+
+	/**
+	 * run built-in test cases
+	 *
+	 * Usage:
+	 *
+	 * $emo = $modules->get('EmailObfuscation');
+	 * $results = $emo->testObfuscateWithCases();
+	 * // Returns: ['case name' => ['pass' => bool, 'input' => '...', 'output' => '...', 'expected' => '...'], ...]
+	 */
+	public function testObfuscateWithCases()
+	{
+		// Use fixed settings for deterministic output
+		$originalUseFixedKey = $this->useFixedKey;
+		$originalFixedKey = $this->fixedKey;
+		$originalKey = $this->key;
+		$originalNoscript = $this->noscript;
+		$originalMailto = $this->mailto;
+		$this->useFixedKey = true;
+		$this->fixedKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.';
+		$this->key = null;
+		$this->noscript = 'Enable JavaScript to view protected content.';
+		$this->mailto = true;
+
+		$cases = array(
+			'plain email' => array(
+				'input' => 'Contact us at test@example.com for help.',
+				'expect' => 'Contact us at <noscript data-emo="PGEgaHJlZj0ibWFpbHRvOnRlc3RAZXhhbXBsZS5jb20iPnRlc3RAZXhhbXBsZS5jb208L2E_">Enable JavaScript to view protected content.</noscript> for help.',
+			),
+			'mailto link' => array(
+				'input' => '<a href="mailto:test@example.com">test@example.com</a>',
+				'expect' => '<noscript data-emo="PGEgaHJlZj0ibWFpbHRvOnRlc3RAZXhhbXBsZS5jb20iPnRlc3RAZXhhbXBsZS5jb208L2E_">Enable JavaScript to view protected content.</noscript>',
+			),
+			'url with email-like path' => array(
+				'input' => '<a href="https://example.com/user@domain.com">https://example.com/user@domain.com</a>',
+				'expect' => '<a href="https://example.com/user@domain.com">https://example.com/user@domain.com</a>',
+			),
+			'email query parameter' => array(
+				'input' => '<a href="https://example.com/?email=user@example.com">https://example.com/?email=user@example.com</a>',
+				'expect' => '<a href="https://example.com/?email=user@example.com">https://example.com/?email=user@example.com</a>',
+			),
+			'multiple emails' => array(
+				'input' => 'Contact alice@example.com or bob@example.com for help.',
+				'expect' => 'Contact <noscript data-emo="PGEgaHJlZj0ibWFpbHRvOmFsaWNlQGV4YW1wbGUuY29tIj5hbGljZUBleGFtcGxlLmNvbTwvYT4A">Enable JavaScript to view protected content.</noscript> or <noscript data-emo="PGEgaHJlZj0ibWFpbHRvOmJvYkBleGFtcGxlLmNvbSI_Ym9iQGV4YW1wbGUuY29tPC9hPgAA">Enable JavaScript to view protected content.</noscript> for help.',
+			),
+		);
+
+		$results = array();
+		foreach($cases as $name => $case) {
+			$this->addrCount = 0;
+			$this->address = array();
+			$this->addressData = array();
+
+			$output = $this->obfuscate($case['input']);
+			$results[$name] = array(
+				'pass' => ($output === $case['expect']),
+				'input' => $case['input'],
+				'output' => $output,
+				'expected' => $case['expect'],
+			);
+		}
+
+		// Restore original settings
+		$this->useFixedKey = $originalUseFixedKey;
+		$this->fixedKey = $originalFixedKey;
+		$this->key = $originalKey;
+		$this->noscript = $originalNoscript;
+		$this->mailto = $originalMailto;
+
+		return $results;
 	}
 
 	/**
